@@ -23,8 +23,7 @@ const Room = () => {
   const [room, setRoom] = useState("");
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [isAdvancedSettingsVisible, setIsAdvancedSettingsVisible] =
-    useState(false);
+  const [isAdvancedSettingsVisible, setIsAdvancedSettingsVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropAreaRef = useRef(null);
 
@@ -203,20 +202,6 @@ const Room = () => {
       });
     }
   };
-
-  // const handleIncrement = (field) => {
-  //   setValue(field, (watchedValues[field] || 0) + 1);
-  // };
-
-  // const handleDecrement = (field) => {
-  //   if (watchedValues[field] > 1) {
-  //     setValue(field, watchedValues[field] - 1);
-  //   }
-  // };
-
-  // const handleSliderChange = (event) => {
-  //   setValue("online", event.target.checked);
-  // };
 
   return (
     <>
