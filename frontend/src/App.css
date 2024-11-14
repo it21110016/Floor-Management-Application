@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional custom class for toggle */
+.toggle-checkbox {
+    appearance: none;
+    width: 50px;
+    height: 24px;
+    background-color: #ccc;
+    border-radius: 9999px;
+    position: relative;
+    transition: background-color 0.3s ease;
+  }
+  
+  .toggle-checkbox:checked {
+    background-color: #4caf50;
+  }
+  
+  .toggle-checkbox:before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: white;
+    transition: transform 0.3s ease;
+    left: 2px;
+    top: 2px;
+  }
+  
+  .toggle-checkbox:checked:before {
+    transform: translateX(26px);
+  }
+  
