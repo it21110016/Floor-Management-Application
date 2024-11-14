@@ -8,8 +8,12 @@ const Home = () => {
 
   useEffect(() => {
     const fetchRooms = async () => {
-      const { data } = await getRooms();
-      setRooms(data);
+      try {
+        const { data } = await getRooms();
+        setRooms(data);
+      } catch (error) {
+        console.error("Error fetching rooms:", error);
+      }
     };
     fetchRooms();
   }, []);

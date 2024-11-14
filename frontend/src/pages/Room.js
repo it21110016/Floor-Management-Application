@@ -1,20 +1,21 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDrop } from "react-dnd";
 import { v4 as uuidv4 } from "uuid";
-import Table from "../components/Table";
-import TableDetailsForm from "../components/TableDetailsForm";
-import { loadLayout, saveLayout } from "../services/api";
-import NewTable from "../components/NewTable";
-import { useForm } from "react-hook-form"; // Import React Hook Form
+import { useForm } from "react-hook-form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
-import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
-import { faClone } from "@fortawesome/free-regular-svg-icons";
-import { faRotateRight } from "@fortawesome/free-solid-svg-icons";
-import { faHouse } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPlusCircle,
+  faTrashCan,
+  faClone,
+  faRotateRight,
+  faHouse,
+} from "@fortawesome/free-solid-svg-icons";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Table from "../components/Table";
+import NewTable from "../components/NewTable";
+import { loadLayout, saveLayout } from "../services/api";
 
 const Room = () => {
   const { id } = useParams();
@@ -22,7 +23,8 @@ const Room = () => {
   const [room, setRoom] = useState("");
   const [tables, setTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [isAdvancedSettingsVisible, setIsAdvancedSettingsVisible] = useState(false);
+  const [isAdvancedSettingsVisible, setIsAdvancedSettingsVisible] =
+    useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dropAreaRef = useRef(null);
 
@@ -30,8 +32,12 @@ const Room = () => {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm();
+
+  const watchedValues = watch();
 
   useEffect(() => {
     const fetchLayout = async () => {
@@ -46,6 +52,17 @@ const Room = () => {
     };
     fetchLayout();
   }, [id]);
+
+  useEffect(() => {
+    if (selectedTable) {
+      setValue("name", selectedTable.name);
+      setValue("minCovers", selectedTable.minCovers);
+      setValue("maxCovers", selectedTable.maxCovers);
+      setValue("size.height", selectedTable.size.height);
+      setValue("size.width", selectedTable.size.width);
+      setValue("online", selectedTable.online);
+    }
+  }, [selectedTable, setValue]);
 
   // Table statistics calculations
   const totalTables = tables.length;
@@ -116,13 +133,17 @@ const Room = () => {
     setSelectedTable(table);
   };
 
-  const handleTableChange = useCallback((updatedTable) => {
-    setTables((prevTables) =>
-      prevTables.map((table) =>
-        table.tableId === updatedTable.tableId ? updatedTable : table
-      )
-    );
-  }, []);
+  const handleTableChange = (field, value) => {
+    if (selectedTable) {
+      const updatedTable = { ...selectedTable, [field]: value };
+      setTables((prevTables) =>
+        prevTables.map((table) =>
+          table.tableId === selectedTable.tableId ? updatedTable : table
+        )
+      );
+      setSelectedTable(updatedTable);
+    }
+  };
 
   const handleRotate = (tableId) => {
     setTables((prevTables) =>
@@ -183,6 +204,20 @@ const Room = () => {
     }
   };
 
+  // const handleIncrement = (field) => {
+  //   setValue(field, (watchedValues[field] || 0) + 1);
+  // };
+
+  // const handleDecrement = (field) => {
+  //   if (watchedValues[field] > 1) {
+  //     setValue(field, watchedValues[field] - 1);
+  //   }
+  // };
+
+  // const handleSliderChange = (event) => {
+  //   setValue("online", event.target.checked);
+  // };
+
   return (
     <>
       <div className="shadow-lg p-6 bg-white rounded-lg flex items-center justify-between mb-1">
@@ -217,11 +252,155 @@ const Room = () => {
             <NewTable />
           </div>
 
+          {/*Table Details Form */}
           {selectedTable ? (
-            <TableDetailsForm
-              table={selectedTable}
-              onChange={handleTableChange}
-            />
+            <form className="space-y-4 max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
+              <div>
+                <p className="text-center font-bold mb-2">Table Details</p>
+                <label className="block text-sm font-medium text-gray-700">
+                  Table Name
+                </label>
+                <input
+                  value={watchedValues.name || ""}
+                  {...register("name")}
+                  onChange={(e) => handleTableChange("name", e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Min Covers
+                </label>
+                <div className="flex items-center space-x-4">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTableChange(
+                        "minCovers",
+                        Math.max(1, watchedValues.minCovers - 1)
+                      )
+                    }
+                    className="w-10 h-10 bg-gray-300 text-xl text-gray-700 rounded-full hover:bg-gray-400 transition"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="text"
+                    {...register("minCovers")}
+                    disabled
+                    value={watchedValues.minCovers || 1}
+                    className="w-20 text-center p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTableChange(
+                        "minCovers",
+                        (watchedValues.minCovers || 1) + 1
+                      )
+                    }
+                    className="w-10 h-10 bg-gray-300 text-xl text-gray-700 rounded-full hover:bg-gray-400 transition"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Max Covers
+                </label>
+                <div className="flex items-center space-x-4">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTableChange(
+                        "maxCovers",
+                        Math.max(1, watchedValues.maxCovers - 1)
+                      )
+                    }
+                    className="w-10 h-10 bg-gray-300 text-xl text-gray-700 rounded-full hover:bg-gray-400 transition"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="text"
+                    {...register("maxCovers")}
+                    disabled
+                    value={watchedValues.maxCovers || 1}
+                    className="w-20 text-center p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleTableChange(
+                        "maxCovers",
+                        (watchedValues.maxCovers || 1) + 1
+                      )
+                    }
+                    className="w-10 h-10 bg-gray-300 text-xl text-gray-700 rounded-full hover:bg-gray-400 transition"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Height
+                </label>
+                <input
+                  type="number"
+                  {...register("size.height")}
+                  value={watchedValues.size?.height || ""}
+                  onChange={(e) =>
+                    handleTableChange("size", {
+                      ...selectedTable.size,
+                      height: e.target.value,
+                    })
+                  }
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Width
+                </label>
+                <input
+                  type="number"
+                  {...register("size.width")}
+                  value={watchedValues.size?.width || ""}
+                  onChange={(e) =>
+                    handleTableChange("size", {
+                      ...selectedTable.size,
+                      width: e.target.value,
+                    })
+                  }
+                  className="mt-1 block w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">
+                  Online
+                </label>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">
+                    {watchedValues.online ? "Active" : "Inactive"}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={watchedValues.online}
+                    onChange={(e) =>
+                      handleTableChange("online", e.target.checked)
+                    }
+                    className="toggle-checkbox"
+                  />
+                </div>
+              </div>
+            </form>
           ) : (
             <p>Select a table to view details</p>
           )}
